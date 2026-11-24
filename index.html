@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart E-Waste Exchange — Item & Status Tracker</title>
+  <style>
+    :root {
+      --bg: #0b131e;
+      --card: #152232;
+      --card-2: #1e3046;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --warn: #f59e0b;
+      --info: #38bdf8;
+      --danger: #ef4444;
+      --border: #2b3e56;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 28px 18px 60px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 22px;
+    }
+
+    header h1 {
+      font-size: 1.65rem;
+      font-weight: 700;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .stat-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .stat-box .label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-box .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+
+    .panel h2 {
+      font-size: 1.05rem;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    form.grid-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    label {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    input, select, button {
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      outline: none;
+    }
+
+    input, select {
+      background: var(--card-2);
+      color: var(--text);
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    button {
+      background: var(--accent);
+      color: #042f2e;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s ease;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+      color: #fff;
+    }
+
+    button.danger {
+      background: transparent;
+      color: #f87171;
+      border: 1px solid #7f1d1d;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+    }
+
+    button.danger:hover {
+      background: #7f1d1d;
+      color: #fff;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .filters input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .reuse {
+      background: rgba(16, 185, 129, 0.16);
+      color: #34d399;
+    }
+
+    .refurbish {
+      background: rgba(56, 189, 248, 0.16);
+      color: #7dd3fc;
+    }
+
+    .recycle {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fbbf24;
+    }
+
+    .status-select {
+      padding: 5px 8px;
+      font-size: 0.82rem;
+      border-radius: 6px;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 26px 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Smart E-Waste Exchange — Item &amp; Status Tracker</h1>
+      <p style="font-size: 0.8rem; color: #38bdf8; margin-top: 4px;">Developed by Ridip Kumar</p>
+    </header>
+
+    <section class="stats" id="statsGrid"></section>
+
+    <section class="panel">
+      <h2>Submit E-Waste Item</h2>
+      <form class="grid-form" id="ewasteForm">
+        <div class="field">
+          <label for="deviceName">Device Name *</label>
+          <input type="text" id="deviceName" placeholder="e.g., Dell Latitude Laptop" required />
+        </div>
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category">
+            <option value="Laptop / PC">Laptop / PC</option>
+            <option value="Smartphone / Tablet">Smartphone / Tablet</option>
+            <option value="Monitor / Display">Monitor / Display</option>
+            <option value="Peripherals / Cables">Peripherals / Cables</option>
+            <option value="Battery / PCB">Battery / PCB</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="condition">Condition</label>
+          <select id="condition">
+            <option value="Working">Working</option>
+            <option value="Minor Fault">Minor Fault</option>
+            <option value="Dead / Broken">Dead / Broken</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ageYears">Age (Years)</label>
+          <input type="number" id="ageYears" min="0" max="25" step="0.5" value="2" required />
+        </div>
+        <div class="field">
+          <label for="location">Pickup / Drop Zone</label>
+          <input type="text" id="location" placeholder="e.g., Ghaziabad / Delhi" />
+        </div>
+        <div class="field">
+          <button type="submit">Submit Item</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Submitted Items &amp; Status</h2>
+      <div class="filters">
+        <input type="text" id="searchInput" placeholder="Search by device name or location..." />
+        <select id="filterAction">
+          <option value="ALL">All Pathways</option>
+          <option value="Reuse / Exchange">Reuse / Exchange</option>
+          <option value="Refurbish">Refurbish</option>
+          <option value="Safe Recycle">Safe Recycle</option>
+        </select>
+        <select id="filterStatus">
+          <option value="ALL">All Statuses</option>
+          <option value="Submitted">Submitted</option>
+          <option value="Inspected">Inspected</option>
+          <option value="Processed">Processed</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Device</th>
+              <th>Category</th>
+              <th>Condition</th>
+              <th>Age</th>
+              <th>Recommended Path</th>
+              <th>Status</th>
+              <th>Location</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "smart_ewaste_items_v1";
+
+    const initialItems = [
+      {
+        id: crypto.randomUUID(),
+        deviceName: "HP Pavilion 15 Laptop",
+        category: "Laptop / PC",
+        condition: "Working",
+        ageYears: 2,
+        recommendedPath: "Reuse / Exchange",
+        status: "Inspected",
+        location: "Delhi"
+      },
+      {
+        id: crypto.randomUUID(),
+        deviceName: "Cracked AMOLED Phone",
+        category: "Smartphone / Tablet",
+        condition: "Minor Fault",
+        ageYears: 2.5,
+        recommendedPath: "Refurbish",
+        status: "Submitted",
+        location: "Ghaziabad"
+      },
+      {
+        id: crypto.randomUUID(),
+        deviceName: "Swollen Li-Ion Battery Pack",
+        category: "Battery / PCB",
+        condition: "Dead / Broken",
+        ageYears: 4,
+        recommendedPath: "Safe Recycle",
+        status: "Processed",
+        location: "Noida"
+      }
+    ];
+
+    let items = loadItems();
+
+    function loadItems() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(initialItems));
+          return [...initialItems];
+        }
+        return JSON.parse(raw);
+      } catch {
+        return [...initialItems];
+      }
+    }
+
+    function saveItems() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function classifyItem(condition, ageYears) {
+      if (condition === "Dead / Broken" || ageYears >= 6) {
+        return "Safe Recycle";
+      }
+      if (condition === "Working" && ageYears <= 3) {
+        return "Reuse / Exchange";
+      }
+      return "Refurbish";
+    }
+
+    function getTagClass(path) {
+      if (path === "Reuse / Exchange") return "reuse";
+      if (path === "Refurbish") return "refurbish";
+      return "recycle";
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function renderStats() {
+      const total = items.length;
+      const reuseCount = items.filter(i => i.recommendedPath === "Reuse / Exchange").length;
+      const refurbishCount = items.filter(i => i.recommendedPath === "Refurbish").length;
+      const recycleCount = items.filter(i => i.recommendedPath === "Safe Recycle").length;
+
+      document.getElementById("statsGrid").innerHTML = `
+        <div class="stat-box">
+          <div class="label">Total Logged</div>
+          <div class="value">${total}</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Reuse / Exchange</div>
+          <div class="value" style="color: #34d399;">${reuseCount}</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Refurbish</div>
+          <div class="value" style="color: #7dd3fc;">${refurbishCount}</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Safe Recycle</div>
+          <div class="value" style="color: #fbbf24;">${recycleCount}</div>
+        </div>
+      `;
+    }
+
+    function getFilteredItems() {
+      const q = document.getElementById("searchInput").value.trim().toLowerCase();
+      const action = document.getElementById("filterAction").value;
+      const status = document.getElementById("filterStatus").value;
+
+      return items.filter(i => {
+        const matchesQ =
+          !q ||
+          i.deviceName.toLowerCase().includes(q) ||
+          (i.location && i.location.toLowerCase().includes(q));
+        const matchesAction = action === "ALL" || i.recommendedPath === action;
+        const matchesStatus = status === "ALL" || i.status === status;
+        return matchesQ && matchesAction && matchesStatus;
+      });
+    }
+
+    function renderTable() {
+      const filtered = getFilteredItems();
+      const tbody = document.getElementById("tableBody");
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="empty">No matching e-waste items found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered
+        .map(
+          (item, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><strong>${escapeHtml(item.deviceName)}</strong></td>
+            <td>${escapeHtml(item.category)}</td>
+            <td>${escapeHtml(item.condition)}</td>
+            <td>${escapeHtml(item.ageYears)} yr</td>
+            <td><span class="tag ${getTagClass(item.recommendedPath)}">${escapeHtml(item.recommendedPath)}</span></td>
+            <td>
+              <select class="status-select" onchange="updateStatus('${item.id}', this.value)">
+                <option value="Submitted" ${item.status === "Submitted" ? "selected" : ""}>Submitted</option>
+                <option value="Inspected" ${item.status === "Inspected" ? "selected" : ""}>Inspected</option>
+                <option value="Processed" ${item.status === "Processed" ? "selected" : ""}>Processed</option>
+              </select>
+            </td>
+            <td>${escapeHtml(item.location || "-")}</td>
+            <td><button type="button" class="danger" onclick="deleteItem('${item.id}')">Delete</button></td>
+          </tr>
+        `
+        )
+        .join("");
+    }
+
+    function updateStatus(id, newStatus) {
+      items = items.map(i => (i.id === id ? { ...i, status: newStatus } : i));
+      saveItems();
+      renderStats();
+    }
+
+    function deleteItem(id) {
+      items = items.filter(i => i.id !== id);
+      saveItems();
+      renderAll();
+    }
+
+    function renderAll() {
+      renderStats();
+      renderTable();
+    }
+
+    document.getElementById("ewasteForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const nameInput = document.getElementById("deviceName");
+      const ageInput = document.getElementById("ageYears");
+      const locInput = document.getElementById("location");
+
+      const deviceName = nameInput.value.trim();
+      const category = document.getElementById("category").value;
+      const condition = document.getElementById("condition").value;
+      const ageYears = parseFloat(ageInput.value) || 0;
+      const location = locInput.value.trim();
+
+      if (!deviceName) return;
+
+      const recommendedPath = classifyItem(condition, ageYears);
+
+      items.unshift({
+        id: crypto.randomUUID(),
+        deviceName,
+        category,
+        condition,
+        ageYears,
+        recommendedPath,
+        status: "Submitted",
+        location
+      });
+
+      saveItems();
+      renderAll();
+
+      nameInput.value = "";
+      locInput.value = "";
+      ageInput.value = "2";
+      nameInput.focus();
+    });
+
+    ["searchInput", "filterAction", "filterStatus"].forEach(id => {
+      document.getElementById(id).addEventListener("input", renderTable);
+      document.getElementById(id).addEventListener("change", renderTable);
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
